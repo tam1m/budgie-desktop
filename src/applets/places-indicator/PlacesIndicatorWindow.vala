@@ -213,7 +213,7 @@ public class PlacesIndicatorWindow : Budgie.Popover {
         }
 
         try {
-            bookmarks_monitor = bookmarks_file.monitor_file(GLib.FileMonitorFlags.NONE, null);
+            bookmarks_monitor = bookmarks_file.monitor_file(GLib.FileMonitorFlags.WATCH_MOVES, null);
             bookmarks_monitor.set_rate_limit(1000);
 
             // Refresh special directories (including the bookmarks) when the file changes
@@ -225,7 +225,7 @@ public class PlacesIndicatorWindow : Budgie.Popover {
 
     private void on_bookmarks_change(GLib.File src, GLib.File? dest, GLib.FileMonitorEvent event)
     {
-        if (event == GLib.FileMonitorEvent.CHANGES_DONE_HINT) {
+        if ((event == GLib.FileMonitorEvent.CHANGES_DONE_HINT) || (event == GLib.FileMonitorEvent.RENAMED)) {
             refresh_special_dirs();
         }
     }
@@ -456,7 +456,14 @@ public class PlacesIndicatorWindow : Budgie.Popover {
      */
     private void add_place(string path, string class)
     {
-        string place = path.split(" ")[0];
+
+        string[] arr = path.split(" ");
+        string place = arr[0];
+        string place_name = "";
+
+        for (int i = 1; i < arr.length; i++) {
+            place_name += arr[i] + " ";
+        }
         string unescaped_path = GLib.Uri.unescape_string(place);
 
         if (places_list.contains(unescaped_path)) {
@@ -465,7 +472,12 @@ public class PlacesIndicatorWindow : Budgie.Popover {
 
         GLib.File file = GLib.File.new_for_uri(unescaped_path);
 
-        PlaceItem place_item = new PlaceItem(file, "place");
+        PlaceItem place_item;
+        if (class == "bookmark" && place_name != "") {
+            place_item = new PlaceItem(file, "place", place_name);
+        } else {
+            place_item = new PlaceItem(file, "place", null);
+        }
         place_item.close_popover.connect(() => { this.hide(); });
         places_list.add(unescaped_path);
         places_section.add_item(place_item);

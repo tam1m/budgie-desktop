@@ -514,6 +514,10 @@ public class NotificationsView : Gtk.Box
 
     private HeaderWidget? header = null;
     private Gtk.ListBox? listbox;
+    private Gtk.Button button_mute;
+    private bool mute_control = false;
+    private Gtk.Image image_notifications_enabled = new Gtk.Image.from_icon_name("mail-send-receive-symbolic", Gtk.IconSize.MENU);
+    private Gtk.Image image_notifications_disabled = new Gtk.Image.from_icon_name("image-red-eye-symbolic", Gtk.IconSize.MENU);
 
     private GLib.Queue<NotificationWindow?> stack = null;
 
@@ -605,8 +609,11 @@ public class NotificationsView : Gtk.Box
 
         int32 expire = expire_timeout;
 
+        if (mute_control) {
+            /* Don't show the notification */
+            expire = 0;
         /* Prevent pure derpery. */
-        if (expire_timeout < 4000 || expire_timeout > 20000) {
+        } else if (expire_timeout < 4000 || expire_timeout > 20000) {
             expire = 4000;
         }
 
@@ -697,6 +704,19 @@ public class NotificationsView : Gtk.Box
     }
 
     [DBus (visible = false)]
+    void do_not_disturb_toggle()
+    {
+        if (mute_control) {
+            button_mute.set_image(image_notifications_enabled);
+            mute_control = false;
+        } else {
+            button_mute.set_image(image_notifications_disabled);
+            mute_control = true;
+        }
+    }
+
+
+    [DBus (visible = false)]
     public NotificationsView()
     {
         Object(orientation: Gtk.Orientation.VERTICAL, spacing: 0);
@@ -706,10 +726,19 @@ public class NotificationsView : Gtk.Box
 
         var btn = new Gtk.Button.from_icon_name("list-remove-all-symbolic", Gtk.IconSize.MENU);
         btn.relief = Gtk.ReliefStyle.NONE;
+        
+        button_mute = new Gtk.Button();
+        button_mute.set_image(image_notifications_enabled);
+        button_mute.relief = Gtk.ReliefStyle.NONE;
+        
+        var controlButtons = new Gtk.Box(Gtk.Orientation.HORIZONTAL, 0);
+        controlButtons.pack_start(btn, false, false, 0);
+        controlButtons.pack_start(button_mute, false, false, 0);
 
-        header = new HeaderWidget(_("No new notifications"), "notification-alert-symbolic", false, null, btn);
+        header = new HeaderWidget(_("No new notifications"), "notification-alert-symbolic", false, null, controlButtons);
         header.margin_top = 6;
 
+        button_mute.clicked.connect(this.do_not_disturb_toggle);
         btn.clicked.connect(this.clear_all);
 
         pack_start(header, false, false, 0);
