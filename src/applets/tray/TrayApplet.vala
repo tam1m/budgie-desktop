@@ -1,8 +1,8 @@
 /*
  * This file is part of budgie-desktop
- * 
+ *
  * Copyright © 2015-2017 Budgie Desktop Developers
- * 
+ *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
@@ -39,12 +39,8 @@ public class TrayApplet : Budgie.Applet
         box.vexpand = false;
         vexpand = false;
 
-        map.connect_after(()=> {
-            maybe_integrate_tray();
-        });
-
-
         show_all();
+        maybe_integrate_tray();
         panel_size_changed.connect((p,i,s)=> {
             this.icon_size = s;
             if (tray != null) {

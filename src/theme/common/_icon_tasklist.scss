@@ -1,3 +1,8 @@
+$budgie_tasklist_indicator_color: #3C6DA6;
+$budgie_tasklist_indicator_color_active: #5294E2;
+$budgie_tasklist_indicator_color_active_window: #6BBFFF;
+$budgie_tasklist_indicator_color_attention: #D84E4E;
+
 // Icon Tasklist
 @mixin icon_tasklist($launcher_type) {
     #{$launcher_type}.launcher {
@@ -6,12 +11,16 @@
         padding: 0;
         background-clip: padding-box;
     }
-    .unpinned #{$launcher_type}.launcher,
-    .pinned #{$launcher_type}.launcher.running { @extend %underscores; }
 
-    .pinned #{$launcher_type}.launcher:not(.running):hover {
-        background-color: transparentize(black, 0.8);
+    #{$launcher_type}.launcher:not(.running):hover {
         box-shadow: inset 1px 0 transparentize(black, 0.8),
                     inset -1px 0 transparentize(black, 0.8);
+    }
+
+    #{$launcher_type}.launcher {
+        &:hover,
+        &:active, &:checked {
+            background-color: transparentize(black, 0.8);
+        }
     }
 }

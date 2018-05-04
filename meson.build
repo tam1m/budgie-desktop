@@ -91,13 +91,28 @@ intltool = find_program('intltool-merge')
 
 # Make sure this is accessible to panel applet builds
 plugin_libdir = join_paths(libdir, meson.project_name(), 'plugins')
+plugin_datadir = join_paths(datadir, meson.project_name(), 'plugins')
 
 cdata.set_quoted('MODULEDIR', plugin_libdir)
-cdata.set_quoted('MODULE_DATA_DIR', join_paths(datadir, meson.project_name(), 'plugins'))
+cdata.set_quoted('MODULE_DATA_DIR', plugin_datadir)
 cdata.set_quoted('DATADIR', datadir)
 cdata.set_quoted('SYSCONFDIR', confdir)
 cdata.set_quoted('LOCALEDIR', localedir)
 cdata.set_quoted('PACKAGE_URL', 'https://budgie-desktop.org')
+
+with_desktop_icons = get_option('with-desktop-icons')
+if with_desktop_icons ==  'nautilus'
+    warning('You must have Nautilus 3.26 or older for desktop icons with Budgie')
+endif
+
+with_stateless = get_option('with-stateless')
+if with_stateless == true
+    warning('Only use stateless option with a supported OS like Solus')
+endif
+
+# GVC rpath. it's evil, but gvc will bomb out glib2 due to static linking weirdness now,
+# so we have to use a shared library to prevent multiple registration of the same types..
+rpath_libdir = join_paths(libdir, meson.project_name())
 
 # Write config.h
 configure_file(
@@ -117,8 +132,10 @@ with_polkit = get_option('with-polkit')
 gvc = subproject('gvc',
     default_options: [
     'c_std=c89',
-    'static=true',
-  ]
+    'package-name=@0@'.format(meson.project_name()),
+    'static=false',
+    'pkglibdir=@0@'.format(rpath_libdir),
+  ],
 )
 
 # Prep translations prior to build
@@ -128,9 +145,34 @@ subdir('po')
 subdir('src')
 
 # Documentation...
-if get_option('with-gtk-doc') == true
+with_gtk_doc = get_option('with-gtk-doc')
+if with_gtk_doc == true
     subdir('docs')
 endif
 
 # And lastly, data bits
 subdir('data')
+
+report = [
+    '    Build configuration:',
+    '    ====================',
+    '',
+    '    prefix:                                 @0@'.format(prefix),
+    '    datadir:                                @0@'.format(datadir),
+    '    sysconfdir:                             @0@'.format(confdir),
+    '    localedir:                              @0@'.format(localedir),
+    '    libdir:                                 @0@'.format(libdir),
+    '    module library directory:               @0@'.format(plugin_libdir),
+    '    module data directory:                  @0@'.format(plugin_datadir),
+    '',
+    '    Extra options:',
+    '    ==============',
+    '',
+    '    gtk-doc:                                @0@'.format(with_gtk_doc),
+    '    desktop icons:                          @0@'.format(with_desktop_icons),
+    '    stateless:                              @0@'.format(with_stateless),
+]
+
+
+# Output some stuff to validate the build config
+message('\n\n\n' + '\n'.join(report) + '\n\n')

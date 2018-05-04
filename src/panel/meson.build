@@ -24,7 +24,6 @@ panel_sources = [
     'uuid.vala',
     'settings/settings_applet_chooser.vala',
     'settings/settings_autostart.vala',
-    'settings/settings_desktop.vala',
     'settings/settings_fonts.vala',
     'settings/settings_item.vala',
     'settings/settings_main.vala',
@@ -38,6 +37,11 @@ panel_sources = [
     panel_resources,
 ]
 
+# Only build desktop icons pane for Nautilus right now
+if with_desktop_icons == 'nautilus'
+    panel_sources +=  'settings/settings_desktop.vala'
+endif
+
 panel_deps = [
     libplugin_vapi,
     dep_gtk3,
@@ -46,7 +50,7 @@ panel_deps = [
     dep_wnck,
     link_libconfig,
     link_libsession,
-    link_libtoplevel,
+    link_libbudgieprivate,
     link_libtheme,
     link_libplugin,
     link_libraven,
@@ -70,6 +74,10 @@ budgie_panel_vala_args = [
         '--target-glib=2.38',
         '--gresources=' + gresource,
 ]
+
+if with_desktop_icons == 'nautilus'
+    budgie_panel_vala_args += ['-D', 'HAVE_NAUTILUS']
+endif
 
 # For pointer methods
 if dep_gtk318.found()
@@ -99,6 +107,7 @@ executable(
         '--pkg', 'gio-unix-2.0',
     ],
     install: true,
+    install_rpath: rpath_libdir,
 )
 
 # Now merge the translations of the .desktop.in to a .desktop

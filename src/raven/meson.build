@@ -28,7 +28,7 @@ libraven_sources = [
 libraven_deps = [
     # XXX: Keep this order the same to work around
     # https://github.com/mesonbuild/meson/issues/2096
-    link_libtoplevel,
+    link_libbudgieprivate,
     libplugin_vapi,
     dep_gtk3,
     dep_peas,
@@ -36,6 +36,7 @@ libraven_deps = [
     link_libplugin,
     link_libtheme,
     gvc.get_variable('libgvc_dep'),
+    meson.get_compiler('c').find_library('m', required: false),
 ]
 
 top_vapidir = join_paths(meson.source_root(), 'vapi')
@@ -60,6 +61,7 @@ libraven = shared_library(
         '--gresources=' + gresource,
     ],
     install: true,
+    install_rpath: rpath_libdir,
 )
 
 link_libraven = declare_dependency(

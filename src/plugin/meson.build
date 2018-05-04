@@ -32,7 +32,7 @@ plugin_headers = [
 	'plugin.h',
 	'applet.h',
 	'applet-info.h',
-        'popover.h',
+    'popover.h',
 	'popover-manager.h',
 ]
 
@@ -47,7 +47,6 @@ plugin_sources = [
 plugin_deps = [
     dep_gtk3,
     dep_peas,
-    link_libenum,
 ]
 
 # build plugin

@@ -9,7 +9,6 @@ gnome_session_components = [
 ]
 
 gnome_session_324_components = [
-    'org.gnome.SettingsDaemon.A11yKeyboard',
     'org.gnome.SettingsDaemon.A11ySettings',
     'org.gnome.SettingsDaemon.Clipboard',
     'org.gnome.SettingsDaemon.Color',
@@ -29,6 +28,10 @@ gnome_session_324_components = [
     'org.gnome.SettingsDaemon.XSettings',
 ]
 
+gsd_324_key = [
+    'org.gnome.SettingsDaemon.A11yKeyboard'
+]
+
 gsd_324_max = [
     'org.gnome.SettingsDaemon.Orientation',
     'org.gnome.SettingsDaemon.XRANDR',
@@ -45,11 +48,14 @@ if with_polkit == true
     budgie_components += 'budgie-polkit'
 endif
 
-# Merge the list depending on the GNOME version. We pick mutter arbitrarily.
-if dep_mutter.version().version_compare('>=3.25.4')
+dep_gsd = dependency('gnome-settings-daemon', version: gnome_minimum_version)
+# Merge the list depending on the gnome-settings-daemon version.
+if dep_gsd.version().version_compare('>=3.27.90')
     session_components = budgie_components + gnome_session_324_components
-elif dep_mutter.version().version_compare('>=3.23.3')
-    session_components = budgie_components + gnome_session_324_components + gsd_324_max
+elif dep_gsd.version().version_compare('>=3.25.4')
+    session_components = budgie_components + gnome_session_324_components + gsd_324_key
+elif dep_gsd.version().version_compare('>=3.23.3')
+    session_components = budgie_components + gnome_session_324_components + gsd_324_key + gsd_324_max
 else
     session_components = gnome_session_components + budgie_components
 endif
@@ -100,7 +106,7 @@ custom_target('desktop-file-xsession',
 )
 
 # Solus only allows stateless XDG (/usr/share/xdg/autostart) in packaging
-if get_option('with-stateless') == true
+if with_stateless == true
     xdg_appdir = join_paths(datadir, 'xdg', 'autostart')
 else
     xdg_appdir = join_paths(get_option('sysconfdir'), 'xdg', 'autostart')
